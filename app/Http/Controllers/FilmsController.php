@@ -29,6 +29,24 @@ class FilmsController extends Controller
         }
     }
 
+    // reccuperer tous les films supprimer avec pagination
+    public function indexDeleted(Request $request)
+    {
+        try {
+            // Récupération de tous les films supprimés avec leurs catégories associées
+            $films = Film::onlyTrashed()->with('categorie')->paginate($request->input('per_page', 10));
+            return ToolsControlleur::successResponse(
+                $films,
+                'Liste des films supprimés récupérée avec succès',
+                ['count' => $films->count()],
+                200
+            );
+        } catch (\Exception $e) {
+            \Log::error('Erreur récupération films supprimés', ['error' => $e->getMessage()]);
+            return ToolsControlleur::errorResponse('Erreur lors de la récupération des films supprimés : ' . $e->getMessage());
+        }
+    }
+
     // Création d'un film
     public function store(Request $request)
     {
@@ -179,6 +197,23 @@ class FilmsController extends Controller
         } catch (\Exception $e) {
             \Log::error('Erreur suppression film', ['error' => $e->getMessage()]);
             return ToolsControlleur::errorResponse('Erreur lors de la suppression du film : ' . $e->getMessage());
+        }
+    }
+
+    // restorer un film supprimé
+    public function restore($id)
+    {
+        try {
+            $film = Film::withTrashed()->findOrFail($id);
+            $film->restore();
+            return ToolsControlleur::successResponse(
+                $film,
+                'Film restauré avec succès',
+                200
+            );
+        } catch (\Exception $e) {
+            \Log::error('Erreur restauration film', ['error' => $e->getMessage()]);
+            return ToolsControlleur::errorResponse('Erreur lors de la restauration du film : ' . $e->getMessage());
         }
     }
 

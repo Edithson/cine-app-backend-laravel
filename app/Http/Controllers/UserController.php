@@ -26,6 +26,23 @@ class UserController extends Controller
         }
     }
 
+    // Récupérer tous les utilisateurs supprimer avec pagination
+    public function indexDeleted(Request $request)
+    {
+        try {
+            $users = User::onlyTrashed()->paginate($request->input('per_page', 15));
+            return ToolsControlleur::successResponse(
+                $users,
+                'Liste des utilisateurs supprimés récupérée avec succès',
+                ['count' => $users->count()],
+                200
+            );
+        } catch (\Exception $e) {
+            \Log::error('Erreur récupération utilisateurs supprimés', ['error' => $e->getMessage()]);
+            return ToolsControlleur::errorResponse('Erreur lors de la récupération des utilisateurs supprimés : ' . $e->getMessage());
+        }
+    }
+
     // Récupérer un utilisateur par son ID (avec ses reservations et ses avis)
     public function show($id)
     {
